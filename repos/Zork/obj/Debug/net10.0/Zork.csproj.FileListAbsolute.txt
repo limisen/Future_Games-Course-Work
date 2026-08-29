@@ -1,0 +1,14 @@
+C:\Users\liam.cosford\source\repos\Zork\obj\Debug\net10.0\Zork.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\liam.cosford\source\repos\Zork\obj\Debug\net10.0\Zork.AssemblyInfoInputs.cache
+C:\Users\liam.cosford\source\repos\Zork\obj\Debug\net10.0\Zork.AssemblyInfo.cs
+C:\Users\liam.cosford\source\repos\Zork\obj\Debug\net10.0\Zork.csproj.CoreCompileInputs.cache
+C:\Users\liam.cosford\source\repos\Zork\bin\Debug\net10.0\Zork.exe
+C:\Users\liam.cosford\source\repos\Zork\bin\Debug\net10.0\Zork.deps.json
+C:\Users\liam.cosford\source\repos\Zork\bin\Debug\net10.0\Zork.runtimeconfig.json
+C:\Users\liam.cosford\source\repos\Zork\bin\Debug\net10.0\Zork.dll
+C:\Users\liam.cosford\source\repos\Zork\bin\Debug\net10.0\Zork.pdb
+C:\Users\liam.cosford\source\repos\Zork\obj\Debug\net10.0\Zork.dll
+C:\Users\liam.cosford\source\repos\Zork\obj\Debug\net10.0\refint\Zork.dll
+C:\Users\liam.cosford\source\repos\Zork\obj\Debug\net10.0\Zork.pdb
+C:\Users\liam.cosford\source\repos\Zork\obj\Debug\net10.0\Zork.genruntimeconfig.cache
+C:\Users\liam.cosford\source\repos\Zork\obj\Debug\net10.0\ref\Zork.dll

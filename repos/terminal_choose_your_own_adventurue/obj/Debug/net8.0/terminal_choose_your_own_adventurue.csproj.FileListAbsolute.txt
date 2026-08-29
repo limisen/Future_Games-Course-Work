@@ -1,0 +1,14 @@
+C:\Users\liam.cosford\source\repos\terminal_choose_your_own_adventurue\bin\Debug\net8.0\terminal_choose_your_own_adventurue.exe
+C:\Users\liam.cosford\source\repos\terminal_choose_your_own_adventurue\bin\Debug\net8.0\terminal_choose_your_own_adventurue.deps.json
+C:\Users\liam.cosford\source\repos\terminal_choose_your_own_adventurue\bin\Debug\net8.0\terminal_choose_your_own_adventurue.runtimeconfig.json
+C:\Users\liam.cosford\source\repos\terminal_choose_your_own_adventurue\bin\Debug\net8.0\terminal_choose_your_own_adventurue.dll
+C:\Users\liam.cosford\source\repos\terminal_choose_your_own_adventurue\bin\Debug\net8.0\terminal_choose_your_own_adventurue.pdb
+C:\Users\liam.cosford\source\repos\terminal_choose_your_own_adventurue\obj\Debug\net8.0\terminal_choose_your_own_adventurue.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\liam.cosford\source\repos\terminal_choose_your_own_adventurue\obj\Debug\net8.0\terminal_choose_your_own_adventurue.AssemblyInfoInputs.cache
+C:\Users\liam.cosford\source\repos\terminal_choose_your_own_adventurue\obj\Debug\net8.0\terminal_choose_your_own_adventurue.AssemblyInfo.cs
+C:\Users\liam.cosford\source\repos\terminal_choose_your_own_adventurue\obj\Debug\net8.0\terminal_choose_your_own_adventurue.csproj.CoreCompileInputs.cache
+C:\Users\liam.cosford\source\repos\terminal_choose_your_own_adventurue\obj\Debug\net8.0\terminal_choose_your_own_adventurue.dll
+C:\Users\liam.cosford\source\repos\terminal_choose_your_own_adventurue\obj\Debug\net8.0\refint\terminal_choose_your_own_adventurue.dll
+C:\Users\liam.cosford\source\repos\terminal_choose_your_own_adventurue\obj\Debug\net8.0\terminal_choose_your_own_adventurue.pdb
+C:\Users\liam.cosford\source\repos\terminal_choose_your_own_adventurue\obj\Debug\net8.0\terminal_choose_your_own_adventurue.genruntimeconfig.cache
+C:\Users\liam.cosford\source\repos\terminal_choose_your_own_adventurue\obj\Debug\net8.0\ref\terminal_choose_your_own_adventurue.dll
