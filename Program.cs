@@ -1,17 +1,19 @@
 ﻿using System.Numerics;
 
-// Defining the grid for the game, where " K " is the key, " G " is the goal, and " - " are empty spaces
+// Defining the grid for the game grid[Y,X], where " K " is the key, " G " is the goal, and " - " are empty rooms
 string[,] grid = new string[6, 6]
 {
-    { " - ", " K ", " - ", " - ", " - ", " - " },
+    { " - ", "RPS", " - ", " - ", " - ", " - " },
+    { " G ", " K ", " - ", " - ", " - ", " - " },
     { " - ", " - ", " - ", " - ", " - ", " - " },
     { " - ", " - ", " - ", " - ", " - ", " - " },
-    { " - ", " G ", " - ", " - ", " - ", " - " },
     { " - ", " - ", " - ", " - ", " - ", " - " },
     { " - ", " - ", " - ", " - ", " - ", " - " }
 };
 // Defining the variables for the game
 Vector2 userPosition = new Vector2(0, 0);
+
+string currentRoom = grid[(int)userPosition.Y, (int)userPosition.X]; // Current room the user is in, based on their position in the grid
 
 int turnsLeft = grid.GetUpperBound(0) * grid.GetUpperBound(1); // turns left before the game ends
 bool isPlaying = true;
@@ -33,42 +35,88 @@ for (int y = 0; y < grid.GetLength(0); y++)
         }
     }
 }
+
 // Defining the variables that check if the user has found the key or reached the goal
 bool userFoundGoal = false;
 bool userHasFoundKey = false;
 bool userHasKey = false;
+bool userHasFoundRPS = false;
 
 string userInput = "";
 
-// Game loop
-Console.WriteLine("Welcome to the land of ZORK!");
+// Game starts here:
+Console.WriteLine("Welcome to the land of ZORK!\n");
+Console.WriteLine("You are currently in a mansion.\nYour goal is to find the 'inner great hall'.\nAnd open it with a key that is hidden ~somewhere~ in the mansion.\n");
+
+Console.WriteLine("You are currently here:");
+// Display the map at the start of the game, so the user can see where they are in the mansion
+displayMap(userPosition);
+Console.WriteLine("(X is your position)");
+
+// Display the help menu at the start of the game, so the user can see what commands are available to them
+commandSelector("help");
 
 while (isPlaying && turnsLeft > 0)
 {
-    displayMap(userPosition);
 
+    // Check what room the user is in and display a message accordingly
+    if (currentRoom == " - ")
+    {
+        Console.WriteLine("You are in an empty room.");
+    }
+    if (currentRoom == " K ")
+    {
+        userHasFoundKey = true;
+        if (userHasKey)
+        {
+            Console.WriteLine("You are in a room where the key *used* to be, (you picked it up)");
+        }
+        else
+        {
+            Console.WriteLine("You are in a room with a key.");
+        }
+    }
+    if (currentRoom == " G ")
+    {
+        userFoundGoal = true;
+        Console.WriteLine("You are in the 'inner great hall', standing before the great double door.");
+        if (!userFoundGoal) { Console.WriteLine("(This is the room where you can win the game)"); }
+    }
+    if (currentRoom == "RPS")
+    {
+        userHasFoundRPS = true;
+        Console.WriteLine("You are in a room with a strange table.\nOn it is a rock, a piece of paper and a pair of scissors.");
+        Console.WriteLine("The table beckons you to choose one!\n");
+
+        Console.WriteLine("Which do you choose?\n[rock], [paper], or [scissors]:");
+        RPS(userInput = Console.ReadLine().Trim().ToLower());
+    }
+
+    // check if the user is at the goal position and if they have the key
     if (userPosition == goalPosition && userHasKey == true)
     {
-        Console.WriteLine("Congratulation! you've reached the goal and aquired the key!\nDo you wish to use the key?");
-        userInput = Console.ReadLine().ToLower();
+        Console.WriteLine("\nCongratulation! you've reached the goal (the 'inner great hall') and aquired the key!\n\nDo you wish to use the key?\n[Yes] or [No]");
+        userInput = Console.ReadLine().Trim().ToLower();
         // Check if the user wants to use the key or not
         if (userInput == "yes")
         {
-            Console.WriteLine("\nYou use the key to unlock the heavy door and beyond it lays...\n(Well we'll see you'll have to stay tuned untill the next installment of ZORK\nYOU WIN!!!");
+            Console.WriteLine("\nYou use the key to unlock the doors.\nAs you (obviously) open it, you see that beyond it lays...\n\n(Well we'll see. You'll have to stay tuned untill the next installment of ZORK\n\nYOU WIN!!!");
             isPlaying = false;
             break;
         }
         else if (userInput == "no")
         {
-            Console.WriteLine("\nstrange... There's not much else you can do besides this but alright...");
-            turnsLeft += 1;
+            Console.WriteLine("\nstrange... There's not much else you can do besides finding this, the key and picking it up. But alright...");
+            Console.WriteLine("\nPress 'Enter' to continue");
+            Console.ReadLine();
+            Console.Clear();
         }
 
         // Error handling for invalid input, keep asking until the user provides a valid response
         while (userInput != "yes" && userInput != "no")
         {
-            Console.WriteLine("Invalid input. Please choose 'Yes' or 'No'.");
-            userInput = Console.ReadLine().ToLower();
+            Console.WriteLine("Invalid input. Please choose [Yes] or [No]");
+            userInput = Console.ReadLine().Trim().ToLower();
 
             // Check if the user wants to use the key
             if (userInput == "yes")
@@ -80,21 +128,25 @@ while (isPlaying && turnsLeft > 0)
             else if (userInput == "no")
             {
                 Console.WriteLine("\nstrange... There's not much else you can do besides this but alright...");
-                turnsLeft += 1;
             }
         }
     }
-    // Check if the user is at the key position and if they have the key. IF they don't have the key then tell them to keep looking for it
+
+    // IF they don't have the key then tell them to keep looking for it
     else if (userPosition == goalPosition && userHasKey == false)
     {
-        Console.WriteLine("You found the goal, but you don't have the key to win the game!\nKeep looking for the key!\n");
-        userFoundGoal = true;
+        Console.WriteLine("\nYou found the goal (the 'inner great hall'), but you don't have the key to open the great door.");
+        if (!userHasFoundKey) { Console.WriteLine("Keep looking for the key!"); }
+        Console.WriteLine("Press 'Enter' to continue");
+        Console.ReadLine();
+        Console.Clear();
     }
 
-    if (userPosition == keyPosition)
+    // Check if the user is at the key position. Then prompt them to pick it up or not, and handle their response
+    if (userPosition == keyPosition && userHasKey == false)
     {
-        Console.WriteLine("\nThere's a key in this room!\nWould u like to pick it up?\n\n[Yes] | [No]");
-        userInput = Console.ReadLine().ToLower();
+        Console.WriteLine("\nWould you like to pick it up?\n\n[Yes] or [No]");
+        userInput = Console.ReadLine().Trim().ToLower();
 
         // Prompt the user to pick up the key or not, and handle their response
         if (userInput == "yes")
@@ -102,158 +154,68 @@ while (isPlaying && turnsLeft > 0)
             Console.WriteLine("\nYou pick up the key!");
             keyPosition = new Vector2(-1, -1); // just to make it dissappear
             userHasKey = true;
+            userHasFoundKey = true;
             Console.WriteLine("Press 'Enter' to continue");
             Console.ReadLine();
             Console.Clear();
-            displayMap(userPosition);
         }
         else if (userInput == "no")
         {
-            Console.Clear();
+            userHasFoundKey = true;
             Console.WriteLine("strange... You'll need the key to win the game, but I guess you can keep looking for the goal without it...\n");
-            displayMap(userPosition);
+            Console.WriteLine("Press 'Enter' to continue");
+            Console.ReadLine();
+            Console.Clear();
         }
 
         // error handling for invalid input, keep asking until the user provides a valid response
         while (userInput != "yes" && userInput != "no")
         {
-            Console.WriteLine("Invalid input. Please choose 'Yes' or 'No'.");
-            userInput = Console.ReadLine().ToLower();
+            Console.WriteLine("Invalid input. Please choose [Yes] or [No]");
+            userInput = Console.ReadLine().Trim().ToLower();
 
             // Check (again) if the user wants to pick up the key
             if (userInput == "yes")
             {
+                Console.Clear();
                 Console.WriteLine("You pick up the key!");
-                keyPosition = new Vector2(-1, -1); // just to make it dissappear
+                keyPosition = new Vector2(-1, -1); // just to make the key none interactable
+                userHasFoundKey = true;
                 userHasKey = true;
                 Console.WriteLine("Press 'Enter' to continue");
                 Console.ReadLine();
                 Console.Clear();
-                displayMap(userPosition);
             }
             // or not
             else if (userInput == "no")
             {
+                userHasFoundKey = true;
                 Console.Clear();
                 Console.WriteLine("strange... You'll need the key to win the game, but I guess you can keep looking for the goal without it...\n");
-                displayMap(userPosition);
+                Console.WriteLine("Press 'Enter' to continue");
+                Console.ReadLine();
+                Console.Clear();
             }
         }
     }
 
-    // IF the user has "won" already, then don't proceed with the loop and end the game
+    // IF the user has "won" already, then don't proceed with (this) the loop and end the game
     if (isPlaying)
     {
-        Console.WriteLine($"It's time to move, you've only got {turnsLeft} turns left!\n\nWhere are you headed?");
-        Console.WriteLine("Possible paths: 'Left', 'Right', 'up', 'down', 'hint', ('Quit')\nChoose Your path:");
-        userInput = Console.ReadLine().ToLower();
-
-        turnsLeft--; // Decrement turns left after each move   
+        Console.WriteLine($"It's time to move, you've only got {turnsLeft} turns left until the mansion collapses!\n\nWhere are you headed?");
+        userInput = Console.ReadLine().Trim().ToLower();
 
         if (turnsLeft == 0)
         {
             Console.WriteLine("You've run out of turns! Game Over.\nYOU LOSE!");
         }
 
-        switch (userInput)
-        {
-            case "left":
-                if ((userPosition.X - 1) >= 0 && userInput == "left")
-                {
-                    userPosition.X += -1;
-                }
-                else
-                {
-                    Console.WriteLine("\nStay inside the bounds of the grid PLEASE!");
-                    if (userPosition.X <= 0) { userPosition.X = 0; }
-                    turnsLeft += 1;
-                    Console.WriteLine("Press 'Enter' to acknowledge");
-                    Console.ReadLine();
-                }
-                break;
-
-            case "right":
-                if ((userPosition.X + 1) <= (grid.GetLength(0) - 1) && userInput == "right")
-                {
-                    userPosition.X += 1;
-                }
-                else
-                {
-                    Console.WriteLine("\nStay inside the bounds of the grid PLEASE!");
-                    if (userPosition.X >= grid.GetLength(0) - 1) { userPosition.X = grid.GetLength(0) - 1; }
-                    turnsLeft += 1;
-                    Console.WriteLine("Press 'Enter' to acknowledge");
-                    Console.ReadLine();
-                }
-                break;
-
-            case "up":
-                if ((userPosition.Y - 1) >= 0 && userInput == "up")
-                {
-                    userPosition.Y -= 1;
-                }
-                else
-                {
-                    Console.WriteLine("\nStay inside the bounds of the grid PLEASE!");
-                    if (userPosition.Y >= grid.GetLength(1) - 1) { userPosition.Y = grid.GetLength(1) - 1; }
-                    turnsLeft += 1;
-                    Console.WriteLine("Press 'Enter' to acknowledge");
-                    Console.ReadLine();
-                }
-                break;
-
-            case "down":
-                if ((userPosition.Y + 1) <= grid.GetLength(1) - 1 && userInput == "down")
-                {
-                    userPosition.Y += 1;
-                }
-                else
-                {
-                    Console.WriteLine("\nStay inside the bounds of the grid PLEASE!");
-                    if (userPosition.Y <= 0) { userPosition.Y = 0; }
-                    turnsLeft += 1;
-                    Console.WriteLine("Press 'Enter' to acknowledge");
-                    Console.ReadLine();
-                }
-                break;
-            case "hint":
-                Console.Write($"The goal is somewhere... ");
-                if (userPosition.X < goalPosition.X)
-                {
-                    Console.WriteLine("to the right...");
-                }
-                else if (userPosition.X > goalPosition.X)
-                {
-                    Console.WriteLine("to the left...");
-                }
-                else if (userPosition.Y < goalPosition.Y)
-                {
-                    Console.WriteLine("above you...");
-                }
-                else if (userPosition.Y > goalPosition.Y)
-                {
-                    Console.WriteLine("below you...");
-                }
-                break;
-
-            case "quit":
-                isPlaying = false;
-                break;
-
-            case "": // IF nothing is typed, (usually when the game starts) then just continue
-                break;
-            default:
-                Console.WriteLine("Invalid input. Please choose a valid path (Within bounds).\nPress 'Enter' to acknowledge");
-                Console.ReadLine();
-                break;
-        }
-        // Clear the console for the next turn (and astethics)
-        Console.Clear();
+        commandSelector(userInput);
     }
 }
+// Game loop ends here
 
-
-// Function to display the map. Where the user is positioned, where the Goal is (if found) and where the key is (if found), and the "walls" (borders) of the grid
+// Function to display the map. Showing where the user is positioned and special rooms (like the goal, key, and RPS room) IF the user has found them
 void displayMap(Vector2 userPosition)
 {
     int gridMaxX = grid.GetUpperBound(0);
@@ -263,7 +225,7 @@ void displayMap(Vector2 userPosition)
 
     // top border (walls) of the grid
     Console.Write("|");
-    for (global::System.Int32 i = 0; i < gridMaxX + 1; i++)
+    for (int i = 0; i < gridMaxX + 1; i++)
     {
         Console.Write("---");
     }
@@ -289,7 +251,13 @@ void displayMap(Vector2 userPosition)
                 Console.Write(" - ");
             }
 
-            if ((item == " G " && userFoundGoal == false) == false && ((item == " K " && userHasFoundKey == false) == false)) // Otherwise show the item in the grid. 
+            if (item == "RPS" && userHasFoundRPS == false) // The position/room where the Rock Papper Scissors minigame is located is marked with "RPS"
+            {
+                Console.Write(" - ");
+            }
+
+            // Otherwise show the item in the grid. 
+            if ((item == " G " && userFoundGoal == false) == false && ((item == " K " && userHasFoundKey == false) == false) && ((item == "RPS" && userHasFoundRPS == false) == false))
             {
                 Console.Write(item);
             }
@@ -312,9 +280,311 @@ void displayMap(Vector2 userPosition)
     }
 
     // bottom border (walls) of the grid
-    for (global::System.Int32 i = 0; i < gridMaxX + 1; i++)
+    for (int i = 0; i < gridMaxX + 1; i++)
     {
         Console.Write("---");
     }
     Console.WriteLine("|");
+}
+
+// Function to handle user input for movement and certain other commands
+void commandSelector(string userInput)
+{
+    // Handle user input for movement and other commands
+    switch (userInput)
+    {
+        case "left":
+            if ((userPosition.X - 1) >= 0 && userInput == "left")
+            {
+                userPosition.X += -1;
+                turnsLeft--;
+            }
+            else
+            {
+                Console.WriteLine("\nPLEASE, try to stay inside the mansion and don't try to go through it's (outer) walls.");
+                if (userPosition.X <= 0) { userPosition.X = 0; }
+                Console.WriteLine("Press 'Enter' to acknowledge");
+                Console.ReadLine();
+            }
+            break;
+
+        case "right":
+            if ((userPosition.X + 1) <= (grid.GetLength(0) - 1) && userInput == "right")
+            {
+                userPosition.X += 1;
+                turnsLeft--;
+            }
+            else
+            {
+                Console.WriteLine("\nPLEASE, try to stay inside the mansion and don't try to go through it's (outer) walls.");
+                if (userPosition.X >= grid.GetLength(0) - 1) { userPosition.X = grid.GetLength(0) - 1; }
+                Console.WriteLine("Press 'Enter' to acknowledge");
+                Console.ReadLine();
+            }
+            break;
+
+        case "up":
+            if ((userPosition.Y - 1) >= 0 && userInput == "up")
+            {
+                userPosition.Y -= 1;
+                turnsLeft--;
+            }
+            else
+            {
+                Console.WriteLine("\nPLEASE, try to stay inside the mansion and don't try to go through it's (outer) walls.");
+                if (userPosition.Y >= grid.GetLength(1) - 1) { userPosition.Y = grid.GetLength(1) - 1; }
+                Console.WriteLine("Press 'Enter' to acknowledge");
+                Console.ReadLine();
+            }
+            break;
+
+        case "down":
+            if ((userPosition.Y + 1) <= grid.GetLength(1) - 1 && userInput == "down")
+            {
+                userPosition.Y += 1;
+                turnsLeft--;
+            }
+            else
+            {
+                Console.WriteLine("\nPLEASE, try to stay inside the mansion and don't try to go through it's (outer) walls.");
+                if (userPosition.Y <= 0) { userPosition.Y = 0; }
+                Console.WriteLine("Press 'Enter' to acknowledge");
+                Console.ReadLine();
+            }
+            break;
+
+        case "hint":
+            // IF the user has NOT found the goal point them in the right direction.
+            if (!userFoundGoal)
+            {
+                Console.Write($"The goal is somewhere... ");
+                if (userPosition.X < goalPosition.X)
+                {
+                    Console.WriteLine("to the right...");
+                }
+                else if (userPosition.X > goalPosition.X)
+                {
+                    Console.WriteLine("to the left...");
+                }
+                else if (userPosition.Y < goalPosition.Y)
+                {
+                    Console.WriteLine("below you...");
+                }
+                else if (userPosition.Y > goalPosition.Y)
+                {
+                    Console.WriteLine("above you...");
+                }
+                Console.WriteLine("\nPress 'Enter' to continue");
+                Console.ReadLine();
+                break;
+            }
+            // IF they've found the goal and don't have the key, tell the user to look at their map to locate the goal again. Also hint that something else may be needed
+            else if (userFoundGoal && !userHasKey)
+            {
+                Console.WriteLine("You've already found the goal. Look at the map using [showmap] to see where it is");
+                Console.WriteLine("(Did you need something else?...)");
+                Console.WriteLine("\nPress 'Enter' to continue");
+                Console.ReadLine();
+                break;
+            }
+            // IF the user has found the goal and picked up the key, tell them to go there and use the key
+            else if (userFoundGoal && userHasKey)
+            {
+                Console.WriteLine("Head to the 'inner great hall' and use the key!");
+                Console.WriteLine("\nPress 'Enter' to continue");
+                Console.ReadLine();
+                break;
+            }
+            break;
+
+        case "help":
+            Console.WriteLine("\nPossible paths: 'Left', 'Right', 'Up', 'Down'");
+            Console.WriteLine("(Attempts to move in the specified direction)\t\t\t(Moving into a room consumes a turn)");
+            Console.WriteLine("(not writing anything ('') will keep you in the same room)\t(Remaining in the same room does NOT consume a turn)\n");
+
+            Console.WriteLine("Other commands: 'Hint', 'ShowMap', 'Quit'\n(These commands dont consume a turn)\n");
+
+            Console.WriteLine("'Hint': points you in the direction of the goal");
+            Console.WriteLine("'ShowMap': Displays the map of the mansion. (Also shows special rooms on the map, IF you've found them)");
+            Console.WriteLine("'Quit': (Obviously) quits the program");
+
+            Console.WriteLine("\nPress 'Enter' to continue");
+            Console.ReadLine();
+            break;
+
+        case "showmap":
+            displayMap(userPosition);
+            Console.WriteLine("Press 'Enter' to continue");
+            Console.ReadLine();
+            break;
+        case "show map":
+            displayMap(userPosition);
+            Console.WriteLine("Press 'Enter' to continue");
+            Console.ReadLine();
+            break;
+
+        case "quit":
+            isPlaying = false;
+            break;
+
+        case "": // IF nothing is typed, (usually when the game starts) then just continue
+            break;
+        default:
+            Console.WriteLine("Invalid input.\nPlease choose a valid command (see help for possible commands).\nPress 'Enter' to acknowledge");
+            Console.ReadLine();
+            break;
+    }
+    currentRoom = grid[(int)userPosition.Y, (int)userPosition.X]; // Updating currentRoom to reflect the user's new position in the mansion(/grid) after their move
+
+    // Clear the console for the next turn (and astethic reasons)
+    Console.Clear();
+}
+
+// Function to handle the Rock Paper Scissors minigame
+void RPS(string userInput)
+{
+pickRPS:
+    // Error handling for invalid input, keep asking until the user provides a valid response
+    while ((userInput != "rock") && (userInput != "paper") && (userInput != "scissors"))
+    {
+        Console.WriteLine("Invalid input. Please choose [rock], [paper], or [scissors]:");
+        userInput = Console.ReadLine().Trim().ToLower();
+    }
+
+    Console.WriteLine($"\nAs you pick up the {userInput} the two other items on the table vanish and a strange voice says:");
+    Console.Write($"'Your choice is made~...'\n\nThe voice continues:\n'Now I will choose~...'");
+
+    int opponentChoiceNumber = new Random().Next(1, 4); // randomly choose a number between 1 and 3 for the opponent's choice
+    string opponentChoiceTxt = "";
+
+    // Display the opponent's choice
+    switch (opponentChoiceNumber)
+    {
+        case 1:
+            Console.WriteLine("Rock!\n");
+            opponentChoiceTxt = "Rock";
+            break;
+        case 2:
+            Console.WriteLine("Paper!\n");
+            opponentChoiceTxt = "Paper";
+            break;
+        case 3:
+            Console.WriteLine("Scissors!\n");
+            opponentChoiceTxt = "Scissors";
+            break;
+    }
+
+    // Now to determine the winner of the Rock Paper Scissors game
+
+    // Prepare a variable to hold the user's choice as a number
+    int userRPSchoice = 0;
+    // Convert the user's choice to a number for comparison
+    switch (userInput)
+    {
+        case "rock":
+            userRPSchoice = 1;
+            break;
+        case "paper":
+            userRPSchoice = 2;
+            break;
+        case "scissors":
+            userRPSchoice = 3;
+            break;
+    }
+
+    // Determine the result of the game by the following truth table:
+    /*
+     | ----------- | -------- | ---------- | ----------- |
+     | user →      | rock (1) | papper (2) | scissor (3) |
+     | Opp ↓       |          |            |             |
+     | ----------- | -------- | ---------- | ----------- |
+     | rock (1)    |    0     |     1      |     2       |
+     | ----------- | -------- | ---------- | ----------- |
+     | papper (2)  |    -1    |     0      |     1       |
+     | ----------- | -------- | ---------- | ----------- |
+     | scissor (3) |    -2    |     -1     |     0       |
+     | ----------- | -------- | ---------- | ----------- |
+    */
+    int result = userRPSchoice - opponentChoiceNumber;
+    // switch statement to handle the result of the RPS game
+    switch (result)
+    {
+        // It's a tie
+        case 0:
+            Console.WriteLine("The voice continues:\n'You have chosen the same as I, so we are equal~'");
+            Console.WriteLine("\nPress 'Enter' to continue");
+            Console.ReadLine();
+            Console.Clear();
+            Console.WriteLine("The items on the table reappear and you are beckoned to choose again!\n");
+
+            Console.WriteLine("Which do you choose?\n[rock], [paper], or [scissors]:");
+            userInput = Console.ReadLine().Trim().ToLower();
+            goto pickRPS;
+
+        // The user wins
+        case 1:
+            Console.WriteLine($"The voice continues:\n'You have chosen better than I. {userInput} beats {opponentChoiceTxt} therefore you win!'");
+            if (userFoundGoal)
+            {
+                Console.WriteLine("'As a reward I'll reveal where the goal of your exploration is located!'");
+                userFoundGoal = true;
+                displayMap(userPosition);
+                Console.WriteLine("\nPress 'Enter' to continue");
+                Console.ReadLine();
+                Console.Clear();
+            }
+            else
+            {
+                Console.WriteLine("'It seems you've already found the goal....\nSo! I'll simply give you more time to explore as you like!'");
+                Console.WriteLine("The mansion stabilizes slightly...");
+                turnsLeft += 5;
+                Console.WriteLine($"(You now have {turnsLeft} turns left)");
+                Console.WriteLine("\nPress 'Enter' to continue");
+                Console.ReadLine();
+                Console.Clear();
+            }
+            break;
+        case 2:
+            Console.WriteLine($"The voice continues:\n'You have chosen better than I. {userInput} beats {opponentChoiceTxt} therefore you win!'");
+            if (userFoundGoal)
+            {
+                Console.WriteLine("'As a reward I'll reveal where the goal of your exploration is located!'");
+                userFoundGoal = true;
+                displayMap(userPosition);
+                Console.WriteLine("\nPress 'Enter' to continue");
+                Console.ReadLine();
+                Console.Clear();
+            }
+            else
+            {
+                Console.WriteLine("'It seems you've already found the goal....\nSo! I'll simply give you more time to explore as you like!'");
+                Console.WriteLine("The mansion stabilizes slightly...");
+                turnsLeft += 5;
+                Console.WriteLine($"(You now have {turnsLeft} turns left)");
+                Console.WriteLine("\nPress 'Enter' to continue");
+                Console.ReadLine();
+                Console.Clear();
+            }
+            break;
+
+        // Opponent wins
+        case -1:
+            Console.WriteLine($"The voice continues:\n'You have chosen worse than I. {opponentChoiceTxt} beats {userInput} therefore you lose.'");
+            Console.WriteLine("'As a punishment I'll teleport you somewhere in the mansion!'");
+            userPosition = new Vector2(new Random().Next(0, grid.GetLength(0)), new Random().Next(0, grid.GetLength(1)));
+            displayMap(userPosition);
+            Console.WriteLine("\nPress 'Enter' to continue");
+            Console.ReadLine();
+            Console.Clear();
+            break;
+        case -2:
+            Console.WriteLine($"The voice continues:\n'You have chosen worse than I. {opponentChoiceTxt} beats {userInput} therefore you lose.'");
+            Console.WriteLine("'As a punishment I'll teleport you somewhere in the mansion!'");
+            userPosition = new Vector2(new Random().Next(0, grid.GetLength(0)), new Random().Next(0, grid.GetLength(1)));
+            displayMap(userPosition);
+            Console.WriteLine("\nPress 'Enter' to continue");
+            Console.ReadLine();
+            Console.Clear();
+            break;
+    }
 }
