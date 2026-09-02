@@ -1,5 +1,7 @@
 ﻿using System.Numerics;
 
+reset: // A label to jump to, (effectively restarting the game)
+
 // Defining the grid for the game grid[Y,X], where " K " is the key, " G " is the goal, "RPS" is the Rock Paper Scissors room, and " - " are empty rooms
 string[,] grid = new string[6, 6]
 {
@@ -104,7 +106,9 @@ while (isPlaying && turnsLeft > 0)
         Console.WriteLine("The table beckons you to choose one!\n");
 
         Console.WriteLine("Which do you choose?\n[rock], [paper], or [scissors]:");
-        RPS(userInput = Console.ReadLine().Trim().ToLower());
+        userInput = Console.ReadLine().Trim().ToLower();
+        Console.Clear();
+        RPS(userInput);
     }
 
 
@@ -195,7 +199,7 @@ while (isPlaying && turnsLeft > 0)
             Console.Clear();
         }
 
-        // error handling for invalid input, keep asking until the user provides a valid response
+        // Error handling for invalid input, keep asking until the user provides a valid response
         while (userInput != "yes" && userInput != "no")
         {
             Console.WriteLine("Invalid input. Please choose [Yes] or [No]");
@@ -228,7 +232,7 @@ while (isPlaying && turnsLeft > 0)
         }
     }
 
-    // IF the user has "won" already, then don't proceed with (this) the loop and end the game
+    // IF the user has "won" already, then don't proceed with (this) the loop
     if (isPlaying)
     {
         Console.WriteLine($"It's time to move, you've only got {turnsLeft} turns left until the mansion collapses!\n\nWhere are you headed?");
@@ -240,6 +244,40 @@ while (isPlaying && turnsLeft > 0)
         }
 
         commandSelector(userInput);
+        if (!isPlaying)
+        {
+            Console.WriteLine("\nWould you like to play again?\n[Yes] or [No]");
+            userInput = Console.ReadLine().Trim().ToLower();
+
+            // Error handling for invalid input, keep asking until the user provides a valid response
+            while (userInput != "yes" && userInput != "no")
+            {
+                Console.WriteLine("Invalid input. Please choose [Yes] or [No]");
+                userInput = Console.ReadLine().Trim().ToLower();
+
+            }
+            if (userInput == "yes")
+            {
+                goto reset; // A label to jump to, (effectively restarting it)
+            }
+        }
+    }
+    // If the user has "won" already, then prompt them to see if they want to play again, and handle their response
+    else
+    {
+        Console.WriteLine("\nWould you like to play again?\n[Yes] or [No]");
+        userInput = Console.ReadLine().Trim().ToLower();
+        // Error handling for invalid input, keep asking until the user provides a valid response
+        while (userInput != "yes" && userInput != "no")
+        {
+            Console.WriteLine("Invalid input. Please choose [Yes] or [No]");
+            userInput = Console.ReadLine().Trim().ToLower();
+
+        }
+        if (userInput == "yes")
+        {
+            goto reset; // A label to jump to, (effectively restarting it)
+        }
     }
 }
 // Game loop ends here
@@ -442,7 +480,8 @@ void commandSelector(string userInput)
             Console.WriteLine("(Attempts to move in the specified direction)\t\t\t(Moving into a room consumes a turn)");
             Console.WriteLine("(not writing anything ('') will keep you in the same room)\t(Remaining in the same room does NOT consume a turn)\n");
 
-            Console.WriteLine("Other commands: 'Hint', 'Show Map', 'Log', 'Redo' & 'Quit'\t(These commands dont consume a turn)\n");
+            Console.WriteLine("Other commands: 'Hint', 'Show Map', 'Log', 'Redo' & 'Quit'\t(These commands dont consume a turn)");
+            Console.WriteLine("(All but 'Redo' also keep you in the same room)\n");
 
             Console.WriteLine("'Hint': points you in the direction of the goal.\t\t(Prioritizing X-axis over Y)");
             Console.WriteLine("'Show Map': Displays the map of the mansion.\t\t\t(Also shows special rooms on the map, IF you've found them)");
@@ -494,7 +533,7 @@ void commandSelector(string userInput)
             break;
 
         case "quit":
-            Log.Add("quit"); // Add the inputed command to the log
+            Log.Add("quit"); // Add the inputed command to the log (may be unnecessary since the game is ending, but just in case)
             isPlaying = false;
             break;
 
@@ -525,31 +564,30 @@ pickRPS:
     Log.Add($"{userInput}"); // Add the inputed command to the log
 
     Console.WriteLine($"\nAs you pick up the {userInput} the two other items on the table vanish and a strange voice says:");
-    Console.Write($"'Your choice is made~...'\n\nThe voice continues:\n'Now I will choose~...'");
+    Console.Write($"'Your choice is made~...'\n\nThe voice continues:\n'Now I will choose~...");
 
     int opponentChoiceNumber = new Random().Next(0, 3); // randomly choose a number between 0 and 2 for the opponent's choice
-    string opponentChoiceTxt = ""; // This is just a temporary value and will be set below
-    // Display the opponent's choice
+    string opponentChoiceTxt = ""; // This is just a temporary value and will be set in the switch below
+    // Based on the opponent's choice(/random number) set 'opponentChoiceTxt' accordingly
     switch (opponentChoiceNumber)
     {
         case 0:
-            Console.WriteLine("Rock!\n");
+            Console.WriteLine("Rock!'\n");      // Display the opponent's choice
             opponentChoiceTxt = "Rock";
             break;
         case 1:
-            Console.WriteLine("Paper!\n");
+            Console.WriteLine("Paper!'\n");     // Display the opponent's choice
             opponentChoiceTxt = "Paper";
             break;
         case 2:
-            Console.WriteLine("Scissors!\n");
+            Console.WriteLine("Scissors!'\n");  // Display the opponent's choice
             opponentChoiceTxt = "Scissors";
             break;
     }
 
-    // Preparing a variable to hold the user's choice as a number
-
-    int userRPSchoice = 0; // This is just a temporary value and will be set based on the user's input below
-    switch (userInput) // Convert the user's choice to a number for comparison
+    int userRPSchoice = 0; // This is just a temporary value and will be set below, based on the user's input
+    // Based on the user's choice(/input) set 'userRPSchoice' to a number for a comparison between the user's choice and the opponent's choice
+    switch (userInput)
     {
         case "rock":
             userRPSchoice = 0;
@@ -578,7 +616,7 @@ pickRPS:
     */
     int result = (userRPSchoice - opponentChoiceNumber + 3) % 3;
 
-    // switch statement to handle the result of the RPS game
+    // switch to handle the result of the RPS game
     switch (result)
     {
         // It's a tie
@@ -594,6 +632,7 @@ pickRPS:
             Console.WriteLine("The items on the table reappear and you are beckoned to choose again!\n");
             Console.WriteLine("Which do you choose?\n[rock], [paper], or [scissors]:");
             userInput = Console.ReadLine().Trim().ToLower();
+            Console.Clear();
 
             goto pickRPS; // Go the the label and effectively restart the RPS game, until a winner is determined (Best of 1)
 
@@ -604,7 +643,7 @@ pickRPS:
             // IF the user has not found the goal yet, then reveal it to them as a reward for winning the RPS game
             if (userFoundGoal == false)
             {
-                Console.WriteLine("'\nAs a reward I'll reveal where the goal of your exploration is located!'");
+                Console.WriteLine("\n'As a reward I'll reveal where the goal of your exploration is located!'");
                 userFoundGoal = true;
                 displayMap(userPosition);
                 Console.WriteLine("\nPress 'Enter' to continue");
@@ -614,7 +653,7 @@ pickRPS:
             // otherwise, if the user has already found the goal, then give them more turns to explore the mansion as a reward for winning the RPS game
             else
             {
-                Console.WriteLine("'\nIt seems you've already found the goal....\nSo! I'll simply give you more time to explore as you like!'");
+                Console.WriteLine("\n'It seems you've already found the goal....\nSo! I'll simply give you more time to explore as you like!'");
                 Console.WriteLine("The mansion stabilizes slightly...");
                 turnsLeft += 5;
                 Console.WriteLine($"(You now have {turnsLeft} turns left)");
@@ -630,7 +669,7 @@ pickRPS:
             Console.WriteLine("'As a punishment I'll teleport you somewhere else in the mansion!'");
 
             // Teleport the user to a random position in the mansion, but not to the RPS room
-            while (userPosition != RPS_Position)
+            while (userPosition == RPS_Position)
             {
                 userPosition = new Vector2(new Random().Next(0, grid.GetLength(0)), new Random().Next(0, grid.GetLength(1)));
             }
