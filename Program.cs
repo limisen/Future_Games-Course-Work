@@ -18,6 +18,9 @@ string currentRoom = grid[(int)userPosition.Y, (int)userPosition.X]; // Current 
 int turnsLeft = grid.GetUpperBound(0) * grid.GetUpperBound(1); // turns left before the game ends
 bool isPlaying = true;
 
+List<Vector2> Log = new List<Vector2>(); // Log of the user's movements in the grid
+Log.Add(userPosition); // add the starting/origin position of the user
+
 // Defining and setting where the key and the goal are located
 Vector2 keyPosition = new Vector2(0, 0);  // Temporary position until we find the key in the grid
 Vector2 goalPosition = new Vector2(0, 0); // Temporary position until we find the goal in the grid
@@ -58,7 +61,6 @@ commandSelector("help");
 
 while (isPlaying && turnsLeft > 0)
 {
-
     // Check what room the user is in and display a message accordingly
     if (currentRoom == " - ")
     {
@@ -298,6 +300,7 @@ void commandSelector(string userInput)
             {
                 userPosition.X += -1;
                 turnsLeft--;
+                Log.Add(userPosition); // Add the new position to the log
             }
             else
             {
@@ -313,6 +316,7 @@ void commandSelector(string userInput)
             {
                 userPosition.X += 1;
                 turnsLeft--;
+                Log.Add(userPosition);
             }
             else
             {
@@ -328,6 +332,7 @@ void commandSelector(string userInput)
             {
                 userPosition.Y -= 1;
                 turnsLeft--;
+                Log.Add(userPosition);
             }
             else
             {
@@ -343,6 +348,7 @@ void commandSelector(string userInput)
             {
                 userPosition.Y += 1;
                 turnsLeft--;
+                Log.Add(userPosition);
             }
             else
             {
@@ -421,6 +427,45 @@ void commandSelector(string userInput)
             displayMap(userPosition);
             Console.WriteLine("Press 'Enter' to continue");
             Console.ReadLine();
+            break;
+
+        case "log":
+
+            if (Log.Count > 1)
+            {
+                Console.WriteLine("Your movement log (in order of your moves) is as follows:");
+                int nrOfMoves = -1;
+                foreach (var item in Log)
+                {
+                    Console.Write($"{++nrOfMoves}. [{item.X} {item.Y}], ");
+                }
+                Console.WriteLine(""); // Just to add a new (empty) line after the log is printed
+
+                Console.WriteLine("\nPress 'Enter' to continue");
+                Console.ReadLine();
+            } 
+            else
+            {
+                Console.WriteLine("You haven't made any moves yet!"); 
+                Console.WriteLine("\nPress 'Enter' to continue");
+                Console.ReadLine();
+            }
+            break;
+
+        case "redo":
+            if (Log.Count > 1)
+            {
+                Console.WriteLine("Redoing your last move...");
+                userPosition = new Vector2(Log[Log.Count - 2].Y, Log[Log.Count - 2].X); // Move the user to the second last position in the log
+                Log.RemoveAt(Log.Count - 1); // Remove the last position from the log
+                turnsLeft--;
+            }
+            else
+            {
+                Console.WriteLine("You haven't made any moves yet!");
+                Console.WriteLine("\nPress 'Enter' to continue");
+                Console.ReadLine();
+            }
             break;
 
         case "quit":
