@@ -19,7 +19,7 @@ Vector2 goalPosition = new Vector2(0, 0);   // Temporary position until we decid
 bool room_RPS_exists = false;               // Whether the Rock Paper Scissors room exists in the grid or not
 Vector2 RPS_Position = new Vector2(0, 0);   // Temporary position until we decide where the RPS room is in the grid
 
-int Random_size_of_grid = Random.Shared.Next(1, 25); // Generate the size of the grid (i.e., the number of rows and columns) (minimum 1 to make sure all the rooms fit)
+int Random_size_of_grid = Random.Shared.Next(1, 4); // Generate the size of the grid (i.e., the number of rows and columns) (minimum 1 to make sure all the rooms fit)
 // Create the grid with the specified number of rows and columns, filling the grid with empty rooms
 // and add all the rooms Coordinates to a HashSet so that we can keep track of which coordinates have already been used
 HashSet<Vector2> UnUsedPositions = new HashSet<Vector2>();
@@ -51,8 +51,8 @@ while (!room_K_exists || !room_G_exists || !room_RPS_exists) // whilst any of th
     else if (!room_K_exists)
     {
         grid[(int)RandomPosition.Y][(int)RandomPosition.X] = " K ";
-        keyPosition = RandomPosition;
         UnUsedPositions.Remove(RandomPosition);
+        keyPosition = RandomPosition;
         room_K_exists = true;
     }
     else if (!room_RPS_exists)
@@ -76,6 +76,7 @@ string currentRoom = grid[(int)userPosition.Y][(int)userPosition.X]; // Current 
 
 int turnsLeft = grid.Count * grid[0].Count; // turns left before the game ends as determined by the size of the grid (i.e., the number of rooms in the mansion)
 bool isPlaying = true;
+bool showMenu = true;
 
 List<string> Log = new List<string>(); // Log of the user's commands
 
@@ -85,6 +86,8 @@ bool userHasFoundKey = false;
 bool userHasKey = false;
 bool userHasFoundRPS = false;
 
+bool redoing = false;
+
 string userInput = "";
 
 
@@ -92,25 +95,10 @@ string userInput = "";
 Console.WriteLine("Welcome to the land of ZORK!\n");
 mainMenu();
 
-if (isPlaying)
-{
-    // Welcome the user to the game and explain the goal of the game, how to play it, etc
-    Console.WriteLine("You are currently in a mansion.\nYour goal is to find the 'inner great hall'.\nAnd open it with a key that is hidden ~somewhere~ in the mansion.\n");
-
-    Console.WriteLine("You are currently here:");
-    // Display the map at the start of the game, so the user can see where they are in the mansion
-    displayMap(userPosition);
-    Console.WriteLine("(X is your position)\n");
-    Console.WriteLine("Press 'Enter' to continue");
-    Console.ReadLine();
-    Console.Clear();
-}
-
-
 // Main game loop, which continues until the user has 'won', 'lost' or 'quit' the game
 while (isPlaying && turnsLeft > 0)
 {
-    // Check what room the user is in and display a message (handle it) accordingly
+    // Check what room the user is in and handle it accordingly
     if (currentRoom == " - ") // Empty room
     {
         Console.WriteLine("You are in an empty room.");
@@ -119,21 +107,131 @@ while (isPlaying && turnsLeft > 0)
     {
         userHasFoundKey = true;
 
-        // Check if the user has already picked up the key or not, and display a message accordingly
+        // Check if the user has already picked up the key or not display a message and handle that scenario accordingly
         if (userHasKey)
         {
             Console.WriteLine("You are in a room where the key *used* to be, (you picked it up)");
         }
         else
         {
-            Console.WriteLine("You are in a room with a key.");
+            Console.WriteLine("You are in a room where a ornate key is hanging on the wall. It's as if it's glowing~");
+            Console.WriteLine("\nWould you like to pick it up?\n\n[Yes] or [No]");
+            if (!redoing) userInput = Console.ReadLine().Trim().ToLower();
+
+            // Prompt the user to pick up the key or not, and handle their response
+            if (userInput == "yes")
+            {
+                if (!redoing) Log.Add(userInput); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
+
+                Console.WriteLine("\nYou pick up the key!");
+                userHasKey = true;
+
+                Console.WriteLine("Press 'Enter' to continue");
+                if (!redoing) Console.ReadLine();
+                Console.Clear();
+            }
+            else if (userInput == "no")
+            {
+                if (!redoing) Log.Add(userInput); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
+
+                Console.WriteLine("strange... You'll need the key to win the game, but I guess you can keep looking for the goal without it...\n");
+                Console.WriteLine("Press 'Enter' to continue");
+                if (!redoing) Console.ReadLine();
+                Console.Clear();
+            }
+
+            // Error handling for invalid input, keep asking until the user provides a valid response
+            while (userInput != "yes" && userInput != "no")
+            {
+                Console.Clear();
+                Console.WriteLine("Invalid input. Please choose [Yes] or [No]");
+                if (!redoing) userInput = Console.ReadLine().Trim().ToLower();
+
+                // Check (again) if the user wants to pick up the key...
+                if (userInput == "yes")
+                {
+                    if (!redoing) Log.Add(userInput); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
+
+                    Console.Clear();
+                    Console.WriteLine("You pick up the key!");
+                    userHasKey = true;
+                    Console.WriteLine("Press 'Enter' to continue");
+                    if (!redoing) Console.ReadLine();
+                    Console.Clear();
+                }
+                // ..or not
+                else if (userInput == "no")
+                {
+                    if (!redoing) Log.Add(userInput); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
+
+                    Console.Clear();
+                    Console.WriteLine("strange... You'll need the key to win the game, but I guess you can keep looking for the goal without it...\n");
+                    Console.WriteLine("Press 'Enter' to continue");
+                    if (!redoing) Console.ReadLine();
+                    Console.Clear();
+                }
+            }
         }
     }
     if (currentRoom == " G ") // Goal room (Where the user can win the game)
     {
-        userFoundGoal = true;
         Console.WriteLine("You are in the 'inner great hall', standing before the great double door.");
         if (!userFoundGoal) { Console.WriteLine("(This is the room where you can win the game)"); }
+        userFoundGoal = true;
+
+        // check if the user has the key
+        if (userHasKey)
+        {
+            Console.WriteLine("\nCongratulation! you've reached the goal (the 'inner great hall') and aquired the key!\n\nDo you wish to use the key?\n[Yes] or [No]");
+            if (!redoing) userInput = Console.ReadLine().Trim().ToLower();
+            // Check if the user wants to use the key or not
+            if (userInput == "yes")
+            {
+                if (!redoing) Log.Add(userInput); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
+                Console.Clear();
+                Console.WriteLine("You use the key to unlock the doors.\nAs you (obviously) open it, you see that beyond it lays...\n\nWell we'll see. You'll have to stay tuned untill the next installment of ZORK\n\nYOU WIN!!!\n");
+                isPlaying = false;
+            }
+            else if (userInput == "no")
+            {
+                if (!redoing) Log.Add(userInput); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
+                Console.WriteLine("\nstrange... There's not much else you can do besides finding this, the key and picking it up. But alright...");
+                Console.WriteLine("\nPress 'Enter' to continue");
+                if (!redoing) Console.ReadLine();
+                Console.Clear();
+            }
+
+            // Error handling for invalid input. Simply keep asking until the user provides a valid response
+            while (userInput != "yes" && userInput != "no")
+            {
+                Console.Clear();
+                Console.WriteLine("Invalid input. Please choose [Yes] or [No]");
+                if (!redoing) userInput = Console.ReadLine().Trim().ToLower();
+
+                // Check if the user wants to use the key
+                if (userInput == "yes")
+                {
+                    if (!redoing) Log.Add(userInput); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
+                    Console.Clear();
+                    Console.WriteLine("You use the key to unlock the doors.\nAs you (obviously) open it, you see that beyond it lays...\n\nWell we'll see. You'll have to stay tuned untill the next installment of ZORK\n\nYOU WIN!!!\n");
+                    isPlaying = false;
+                }
+                else if (userInput == "no")
+                {
+                    if (!redoing) Log.Add(userInput); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
+                    Console.WriteLine("\nstrange... There's not much else you can do besides this but alright...");
+                }
+            }
+        }
+        // IF the user does not have the key then tell them to keep looking for it
+        else
+        {
+            Console.WriteLine("\nYou found the goal (the 'inner great hall'), but you don't have the key to open the great door.");
+            if (!userHasFoundKey) { Console.WriteLine("Keep looking for the key!"); }
+            Console.WriteLine("\nPress 'Enter' to continue");
+            if (!redoing) Console.ReadLine();
+            Console.Clear();
+        }
     }
     if (currentRoom == "RPS") // Rock Paper Scissors room (Where the user can play a Rock Paper Scissors minigame)
     {
@@ -142,138 +240,16 @@ while (isPlaying && turnsLeft > 0)
         Console.WriteLine("The table beckons you to choose one!\n");
 
         Console.WriteLine("Which do you choose?\n[rock], [paper], or [scissors]:");
-        userInput = Console.ReadLine().Trim().ToLower();
+        if (!redoing) userInput = Console.ReadLine().Trim().ToLower();
         Console.Clear();
         RPS(userInput);
-    }
-
-
-    // check if the user is at the goal position and if they have the key
-    if (userPosition == goalPosition && userHasKey == true)
-    {
-        Console.WriteLine("\nCongratulation! you've reached the goal (the 'inner great hall') and aquired the key!\n\nDo you wish to use the key?\n[Yes] or [No]");
-        userInput = Console.ReadLine().Trim().ToLower();
-        // Check if the user wants to use the key or not
-        if (userInput == "yes")
-        {
-            Log.Add(userInput); // Add the inputed command to the log
-            Console.Clear();
-            Console.WriteLine("You use the key to unlock the doors.\nAs you (obviously) open it, you see that beyond it lays...\n\nWell we'll see. You'll have to stay tuned untill the next installment of ZORK\n\nYOU WIN!!!\n");
-            isPlaying = false;
-        }
-        else if (userInput == "no")
-        {
-            Log.Add(userInput); // Add the inputed command to the log
-            Console.WriteLine("\nstrange... There's not much else you can do besides finding this, the key and picking it up. But alright...");
-            Console.WriteLine("\nPress 'Enter' to continue");
-            Console.ReadLine();
-            Console.Clear();
-        }
-
-        // Error handling for invalid input. Simply keep asking until the user provides a valid response
-        while (userInput != "yes" && userInput != "no")
-        {
-            Console.Clear();
-            Console.WriteLine("Invalid input. Please choose [Yes] or [No]");
-            userInput = Console.ReadLine().Trim().ToLower();
-
-            // Check if the user wants to use the key
-            if (userInput == "yes")
-            {
-                Log.Add(userInput); // Add the inputed command to the log
-                Console.Clear();
-                Console.WriteLine("You use the key to unlock the doors.\nAs you (obviously) open it, you see that beyond it lays...\n\nWell we'll see. You'll have to stay tuned untill the next installment of ZORK\n\nYOU WIN!!!\n");
-                isPlaying = false;
-            }
-            else if (userInput == "no")
-            {
-                Log.Add(userInput); // Add the inputed command to the log
-                Console.WriteLine("\nstrange... There's not much else you can do besides this but alright...");
-            }
-        }
-    }
-
-    // IF the user does not have the key then tell them to keep looking for it
-    else if (userPosition == goalPosition && userHasKey == false)
-    {
-        Console.WriteLine("\nYou found the goal (the 'inner great hall'), but you don't have the key to open the great door.");
-        if (!userHasFoundKey) { Console.WriteLine("Keep looking for the key!"); }
-        Console.WriteLine("\nPress 'Enter' to continue");
-        Console.ReadLine();
-        Console.Clear();
-    }
-
-    // Simply check if the user is at the key position, and if so, set the userHasFoundKey variable to true
-    if (userPosition == keyPosition) { userHasFoundKey = true; }
-
-    // Check if the user is at the key position, and whether they have the key yet. Then prompt them accordingly and handle their response
-    if (userPosition == keyPosition && userHasKey == false)
-    {
-        Console.WriteLine("\nWould you like to pick it up?\n\n[Yes] or [No]");
-        userInput = Console.ReadLine().Trim().ToLower();
-
-        // Prompt the user to pick up the key or not, and handle their response
-        if (userInput == "yes")
-        {
-            Log.Add(userInput); // Add the inputed command to the log
-
-            Console.WriteLine("\nYou pick up the key!");
-            keyPosition = new Vector2(-1, -1); // just to make it none interactable (as the key is only interactable based on position and should only be interactable once)
-            userHasKey = true;
-
-            Console.WriteLine("Press 'Enter' to continue");
-            Console.ReadLine();
-            Console.Clear();
-        }
-        else if (userInput == "no")
-        {
-            Log.Add(userInput); // Add the inputed command to the log
-
-            Console.WriteLine("strange... You'll need the key to win the game, but I guess you can keep looking for the goal without it...\n");
-            Console.WriteLine("Press 'Enter' to continue");
-            Console.ReadLine();
-            Console.Clear();
-        }
-
-        // Error handling for invalid input, keep asking until the user provides a valid response
-        while (userInput != "yes" && userInput != "no")
-        {
-            Console.Clear();
-            Console.WriteLine("Invalid input. Please choose [Yes] or [No]");
-            userInput = Console.ReadLine().Trim().ToLower();
-
-            // Check (again) if the user wants to pick up the key...
-            if (userInput == "yes")
-            {
-                Log.Add(userInput); // Add the inputed command to the log
-
-                Console.Clear();
-                Console.WriteLine("You pick up the key!");
-                keyPosition = new Vector2(-1, -1); // just to make the key none interactable (as the key is only interactable based on position and should only be interactable once)
-                userHasKey = true;
-                Console.WriteLine("Press 'Enter' to continue");
-                Console.ReadLine();
-                Console.Clear();
-            }
-            // ..or not
-            else if (userInput == "no")
-            {
-                Log.Add(userInput); // Add the inputed command to the log
-
-                Console.Clear();
-                Console.WriteLine("strange... You'll need the key to win the game, but I guess you can keep looking for the goal without it...\n");
-                Console.WriteLine("Press 'Enter' to continue");
-                Console.ReadLine();
-                Console.Clear();
-            }
-        }
     }
 
     // IF the user has 'won', 'lost' or 'quit', then don't proceed with (this) the loop
     if (isPlaying)
     {
         Console.WriteLine($"It's time to move, you've only got {turnsLeft} turns left until the mansion collapses!\n\nWhere are you headed?");
-        userInput = Console.ReadLine().Trim().ToLower();
+        if (!redoing) userInput = Console.ReadLine().Trim().ToLower();
 
         if (turnsLeft == 0)
         {
@@ -282,32 +258,41 @@ while (isPlaying && turnsLeft > 0)
 
         commandSelector(userInput);
 
+        // Effectivly pause the game so the user can read the map before continuing, if *they* have chosen to show the map
+        if (userInput == "showmap" || userInput == "show map")
+        {
+            Console.WriteLine("\nPress 'Enter' to continue");
+            if (!redoing) Console.ReadLine();
+            Console.Clear();
+        }
+
+        Console.Clear(); // Clear the terminal for asthetic reasons
+
         // IF the user has 'won', 'lost' or 'quit', then proceed with (this) the loop
         if (!isPlaying)
         {
             Console.WriteLine("Would you like to play again?\n[Yes] or [No]");
-            userInput = Console.ReadLine().Trim().ToLower();
+            if (!redoing) userInput = Console.ReadLine().Trim().ToLower();
 
             // Error handling for invalid input, keep asking until the user provides a valid response
             while (userInput != "yes" && userInput != "no")
             {
                 Console.Clear();
                 Console.WriteLine("Invalid input. Please choose [Yes] or [No]");
-                userInput = Console.ReadLine().Trim().ToLower();
-
+                if (!redoing) userInput = Console.ReadLine().Trim().ToLower();
             }
 
             // Depending on the user's response, either restart the game or exit the program
             if (userInput == "yes")
             {
                 Console.Clear();
-                Log.Add(userInput); // Add the inputed command to the log
+                if (!redoing) Log.Add(userInput); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
                 mainMenu();
             }
             else if (userInput != "no")
             {
                 Console.Clear();
-                Log.Add(userInput); // Add the inputed command to the log
+                if (!redoing) Log.Add(userInput); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
             }
         }
     }
@@ -315,30 +300,34 @@ while (isPlaying && turnsLeft > 0)
     else
     {
         Console.WriteLine("Would you like to play again?\n[Yes] or [No]");
-        userInput = Console.ReadLine().Trim().ToLower();
+        if (!redoing) userInput = Console.ReadLine().Trim().ToLower();
 
         // Error handling for invalid input, keep asking until the user provides a valid response
         while (userInput != "yes" && userInput != "no")
         {
             Console.Clear();
             Console.WriteLine("Invalid input. Please choose [Yes] or [No]");
-            userInput = Console.ReadLine().Trim().ToLower();
+            if (!redoing) userInput = Console.ReadLine().Trim().ToLower();
         }
 
         // Depending on the user's response, either restart the game or exit the program
         if (userInput == "yes")
         {
             Console.Clear();
-            Log.Add(userInput); // Add the inputed command to the log
+            if (!redoing) Log.Add(userInput); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
             mainMenu();
         }
         else if (userInput != "no")
         {
             Console.Clear();
-            Log.Add(userInput); // Add the inputed command to the log
+            if (!redoing) Log.Add(userInput); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
         }
     }
 }
+if (turnsLeft == 0)
+{
+    Console.WriteLine("You've run out of turns! Game Over.\nYOU LOSE!");
+} 
 Console.WriteLine("Thanks for playing!");
 //<------ Game loop ends here
 
@@ -347,14 +336,17 @@ Console.WriteLine("Thanks for playing!");
 // Functions and methods:
 
 // Display the main menu to the user, and handle their response
-void mainMenu()
+void mainMenu(string userInput = "")
 {
-    bool showMenu = true;
+    showMenu = true;
 
     while (showMenu)
     {
-        Console.WriteLine("Main Menu:\n[Start] - Start the game\n[Help] - Show the help menu\n[Quit] - Quit the game\n");
-        userInput = Console.ReadLine().Trim().ToLower();
+        if (userInput == "")
+        {
+            Console.WriteLine("Main Menu:\n[Start] - Start the game\n[Help] - Show the help menu\n[Quit] - Quit the game\n");
+            if (!redoing) userInput = Console.ReadLine().Trim().ToLower();
+        }
 
         // Error handling for invalid input, keep asking until the user provides a valid response
         while (userInput != "start" && userInput != "help" && userInput != "quit")
@@ -363,29 +355,53 @@ void mainMenu()
             Console.WriteLine("Invalid input. Please choose [Start], [Help], or [Quit].");
 
             Console.WriteLine("Explaination:\n[Start] - Start the game\n[Help] - Show the help menu\n[Quit] - Quit the game\n");
-            userInput = Console.ReadLine().Trim().ToLower();
+            if (!redoing) userInput = Console.ReadLine().Trim().ToLower();
         }
 
         switch (userInput)
         {
-            // Exit the main menu and start the game
+            // Exit the main menu (in case of a restart also reset the variables to their initial values) and start the game
             case "start":
-                Log.Add(userInput);
+                Console.Clear();
+
+                if (!redoing) Log.Add(userInput); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
                 showMenu = false;
                 isPlaying = true;
+
+                userPosition = new Vector2(0, 0); // Reset the user's position to the starting position (0, 0) in the grid
+                userHasFoundKey = false;
+                userHasKey = false;
+                userFoundGoal = false;
+                userHasFoundRPS = false;
+
+                currentRoom = grid[(int)userPosition.Y][(int)userPosition.X]; // Update current room to reflect the user's new position in the mansion(/grid) after the reset
+
+                turnsLeft = grid.Count * grid[0].Count; // Reset the number of turns left to the initial value based on the size of the grid
+
+                // Welcome the user to the game and explain the goal of the game, how to play it, etc
+                Console.WriteLine("You are currently in a mansion.\nYour goal is to find the 'inner great hall'.\nAnd open it with a key that is hidden ~somewhere~ in the mansion.\n");
+
+                Console.WriteLine("You are currently here:");
+                // Display the map at the start of the game, so the user can see where they are in the mansion
+                displayMap(userPosition);
+                Console.WriteLine("(X is your position)\n");
+                Console.WriteLine("Press 'Enter' to continue");
+                if (!redoing) { Console.ReadLine(); }
                 Console.Clear();
+
                 break;
 
             // Show the help menu
             case "help":
-                Log.Add(userInput);
+                if (!redoing) Log.Add(userInput); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
                 Console.Clear();
                 commandSelector("help");
                 break;
 
             // Set the game to be in a playing state
             case "quit":
-                Log.Add(userInput);
+                Console.Clear();
+                if (!redoing) Log.Add(userInput); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
                 showMenu = false;
                 isPlaying = false;
                 break;
@@ -412,7 +428,7 @@ void displayMap(Vector2 userPosition)
     Console.Write("|");
 
     // map the grids content
-    foreach (string? item in grid.SelectMany(row => row))
+    foreach (string? item in grid.SelectMany(row => row)) // 'SelectMany' flattens the 2D grid into a 1D sequence (list) so the foreach loop can iterate through it
     {
         if (currentPos == userPosition) // user's position is marked with an "X" on the grid
         {
@@ -475,15 +491,16 @@ void commandSelector(string userInput)
             {
                 userPosition.X += -1;
                 turnsLeft--;
-                Log.Add("left"); // Add the new command to the log
+                if (!redoing) Log.Add("left"); // Add the command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
             }
             else
             {
                 Console.WriteLine("\nPLEASE, try to stay inside the mansion and don't try to go through it's (outer) walls.");
                 if (userPosition.X <= 0) { userPosition.X = 0; }
                 Console.WriteLine("Press 'Enter' to acknowledge");
-                Console.ReadLine();
+                if (!redoing) Console.ReadLine();
             }
+            Console.Clear();
             break;
 
         case "right":
@@ -491,15 +508,16 @@ void commandSelector(string userInput)
             {
                 userPosition.X += 1;
                 turnsLeft--;
-                Log.Add("right"); // Add the inputed command to the log
+                if (!redoing) Log.Add("right"); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
             }
             else
             {
                 Console.WriteLine("\nPLEASE, try to stay inside the mansion and don't try to go through it's (outer) walls.");
                 if (userPosition.X >= grid[0].Count - 1) { userPosition.X = grid[0].Count - 1; }
                 Console.WriteLine("Press 'Enter' to acknowledge");
-                Console.ReadLine();
+                if (!redoing) Console.ReadLine();
             }
+            Console.Clear();
             break;
 
         case "up":
@@ -507,15 +525,16 @@ void commandSelector(string userInput)
             {
                 userPosition.Y -= 1;
                 turnsLeft--;
-                Log.Add("up"); // Add the inputed command to the log
+                if (!redoing) Log.Add("up"); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
             }
             else
             {
                 Console.WriteLine("\nPLEASE, try to stay inside the mansion and don't try to go through it's (outer) walls.");
                 if (userPosition.Y >= grid.Count - 1) { userPosition.Y = grid.Count - 1; }
                 Console.WriteLine("Press 'Enter' to acknowledge");
-                Console.ReadLine();
+                if (!redoing) Console.ReadLine();
             }
+            Console.Clear();
             break;
 
         case "down":
@@ -523,19 +542,21 @@ void commandSelector(string userInput)
             {
                 userPosition.Y += 1;
                 turnsLeft--;
-                Log.Add("down"); // Add the inputed command to the log
+                if (!redoing) Log.Add("down"); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
             }
             else
             {
                 Console.WriteLine("\nPLEASE, try to stay inside the mansion and don't try to go through it's (outer) walls.");
                 if (userPosition.Y <= 0) { userPosition.Y = 0; }
                 Console.WriteLine("Press 'Enter' to acknowledge");
-                Console.ReadLine();
+                if (!redoing) Console.ReadLine();
             }
+            Console.Clear();
             break;
 
         case "hint":
-            Log.Add("hint"); // Add the inputed command to the log
+            Console.Clear();
+            if (!redoing) Log.Add("hint"); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
 
             // IF the user has NOT found the goal point them in the right direction.
             if (!userFoundGoal)
@@ -558,7 +579,8 @@ void commandSelector(string userInput)
                     Console.WriteLine("above you...");
                 }
                 Console.WriteLine("\nPress 'Enter' to continue");
-                Console.ReadLine();
+                if (!redoing) Console.ReadLine();
+                Console.Clear();
                 break;
             }
             // IF they've found the goal and don't have the key, tell the user to look at their map to locate the goal again. Also hint that something else may be needed
@@ -566,8 +588,34 @@ void commandSelector(string userInput)
             {
                 Console.WriteLine("You've already found the goal. Look at the map using [showmap] to see where it is");
                 Console.WriteLine("(Did you need something else?...)");
-                Console.WriteLine("\nPress 'Enter' to continue");
-                Console.ReadLine();
+                if (!redoing)
+                {
+                    userInput = Console.ReadLine().Trim().ToLower();
+                    if (userInput == "yes")
+                    {
+                        Console.Write($"The Key is somewhere... ");
+                        if (userPosition.X < keyPosition.X)
+                        {
+                            Console.WriteLine("to the right...");
+                        }
+                        else if (userPosition.X > keyPosition.X)
+                        {
+                            Console.WriteLine("to the left...");
+                        }
+                        else if (userPosition.Y < keyPosition.Y)
+                        {
+                            Console.WriteLine("below you...");
+                        }
+                        else if (userPosition.Y > keyPosition.Y)
+                        {
+                            Console.WriteLine("above you...");
+                        }
+                        Console.WriteLine("\nPress 'Enter' to continue");
+                        if (!redoing) Console.ReadLine();
+                        Console.Clear();
+                        break;
+                    }
+                }
                 break;
             }
             // IF the user has found the goal and picked up the key, tell them to go there and use the key
@@ -575,13 +623,13 @@ void commandSelector(string userInput)
             {
                 Console.WriteLine("Head to the 'inner great hall' and use the key!");
                 Console.WriteLine("\nPress 'Enter' to continue");
-                Console.ReadLine();
+                if (!redoing) Console.ReadLine();
                 break;
             }
             break;
 
         case "help":
-            Log.Add("help"); // Add the inputed command to the log
+            if (!redoing) Log.Add("help"); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
 
             // Display the help menu to the user
             Console.WriteLine("Movement Commands:");
@@ -599,26 +647,23 @@ void commandSelector(string userInput)
 
             // Effectively just a pause so the user can read the help menu before continuing
             Console.WriteLine("\nPress 'Enter' to continue");
-            Console.ReadLine();
+            if (!redoing) Console.ReadLine();
+            showMenu = false;
             break;
 
         case "showmap":
-            Log.Add("showmap"); // Add the inputed command to the log
+            if (!redoing) Log.Add("showmap"); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
 
             displayMap(userPosition);
-            Console.WriteLine("Press 'Enter' to continue");
-            Console.ReadLine();
             break;
         case "show map":
-            Log.Add("show map"); // Add the inputed command to the log
+            if (!redoing) Log.Add("show map"); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
 
             displayMap(userPosition);
-            Console.WriteLine("Press 'Enter' to continue");
-            Console.ReadLine();
             break;
 
         case "log":
-            Log.Add("log"); // Add the inputed command to the log
+            if (!redoing) Log.Add("log"); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
 
             Console.Clear();
             Console.WriteLine("Your log is as follows:");
@@ -630,33 +675,66 @@ void commandSelector(string userInput)
             Console.WriteLine(""); // Just to add a new (empty) line after the log is printed
 
             Console.WriteLine("\nPress 'Enter' to continue");
-            Console.ReadLine();
+            if (!redoing) Console.ReadLine();
+            Console.Clear();
             break;
 
+        // Redo the last command in the log, if there is one
         case "redo":
+            if (Log.Count < 1)
+            {
+                break;
+            }
+
+            redoing = true;
+
+            Console.Write("Redoing commands");
+            Thread.Sleep(350);
+            Console.Write(".");
+            Thread.Sleep(350);
+            Console.Write(".");
+            Thread.Sleep(350);
+            Console.Write(".");
+            Thread.Sleep(350);
+
+            foreach (string? item in Log)
+            {
+                // Skip these commands since they not necessary to take the user back to the state prior to their last command
+                if (item == "redo" || item == "showmap" || item == "show map" || item == "log")
+                {
+                    continue;
+                }
+                if (item == "start")
+                {
+                    mainMenu(item);
+                }
+                else
+                {
+                    commandSelector(item);
+                    break;
+                }
+            }
+            // now that the redo is complete:
+            redoing = false;
             Log.Add("redo"); // Add the inputed command to the log
-
-            // Redo the last command in the log, if there is one
-            Console.WriteLine("not implimented yet.");
-
             break;
 
         case "quit":
-            Log.Add("quit"); // Add the inputed command to the log (may be unnecessary since the game is ending, but just in case)
+            Console.Clear();
+            if (!redoing) Log.Add("quit"); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
             isPlaying = false;
             break;
 
         case "": // IF nothing is typed, (usually when the game starts) then just continue
             break;
         default:
+            Console.Clear();
             Console.WriteLine("Invalid input.\nPlease choose a valid command (see help for possible commands).\nPress 'Enter' to acknowledge");
-            Console.ReadLine();
+            if (!redoing) Console.ReadLine();
+            Console.Clear();
             break;
     }
     currentRoom = grid[(int)userPosition.Y][(int)userPosition.X]; // Updating currentRoom to reflect the user's new position in the mansion(/grid) after their move
-
-    // Clear the console for the next turn (and astethic reasons)
-    Console.Clear();
 }
 
 // Function to handle the Rock Paper Scissors minigame
@@ -670,10 +748,10 @@ void RPS(string userInput)
         while ((userInput != "rock") && (userInput != "paper") && (userInput != "scissors"))
         {
             Console.WriteLine("Invalid input. Please choose [rock], [paper], or [scissors]:");
-            userInput = Console.ReadLine().Trim().ToLower();
+            if (!redoing) userInput = Console.ReadLine().Trim().ToLower();
         }
 
-        Log.Add($"{userInput}"); // Add the inputed command to the log
+        if (!redoing) Log.Add($"{userInput}"); // Add the inputed command to the log (as long as we aren't trying to redo a command, since that wouldn't be a command the user themselves inputed)
 
         Console.WriteLine($"As you pick up the {userInput} the two other items on the table vanish and a strange voice says:");
         Console.Write($"'Your choice is made~...'\n\nThe voice continues:\n'Now I will choose~...");
@@ -737,13 +815,13 @@ void RPS(string userInput)
                 Console.WriteLine("\nPress 'Enter' to continue");
 
                 // Effectively just a pause so the user can read the message before continuing
-                Console.ReadLine();
+                if (!redoing) Console.ReadLine();
                 Console.Clear();
 
                 // Prompt the user to choose again, (the RPS game effectively restarts)
                 Console.WriteLine("The items on the table reappear and you are beckoned to choose again!\n");
                 Console.WriteLine("Which do you choose?\n[rock], [paper], or [scissors]:");
-                userInput = Console.ReadLine().Trim().ToLower();
+                if (!redoing) userInput = Console.ReadLine().Trim().ToLower();
                 Console.Clear();
 
                 RPS_Tie = true;
@@ -760,7 +838,7 @@ void RPS(string userInput)
                     userFoundGoal = true;
                     displayMap(userPosition);
                     Console.WriteLine("\nPress 'Enter' to continue");
-                    Console.ReadLine();
+                    if (!redoing) Console.ReadLine();
                     Console.Clear();
                 }
                 // otherwise, if the user has already found the goal, then give them more turns to explore the mansion as a reward for winning the RPS game
@@ -771,7 +849,7 @@ void RPS(string userInput)
                     turnsLeft += 5;
                     Console.WriteLine($"(You now have {turnsLeft} turns left)");
                     Console.WriteLine("\nPress 'Enter' to continue");
-                    Console.ReadLine();
+                    if (!redoing) Console.ReadLine();
                     Console.Clear();
                 }
                 RPS_Tie = false;
@@ -792,7 +870,7 @@ void RPS(string userInput)
 
                 // Effectively just a pause so the user can read the message before continuing
                 Console.WriteLine("\nPress 'Enter' to continue");
-                Console.ReadLine();
+                if (!redoing) Console.ReadLine();
                 Console.Clear();
                 RPS_Tie = false;
                 break;
